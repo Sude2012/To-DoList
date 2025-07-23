@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todolist/core/constant/string.dart';
 import 'package:todolist/core/enums/week_of_days.dart';
-import 'package:todolist/core/provider/task_provider.dart';
+import 'package:todolist/core/provider/task_viewmodel.dart';
 import 'package:todolist/main.dart';
 import 'package:todolist/core/models/task_model.dart';
 
@@ -15,29 +15,8 @@ class Addtask extends StatefulWidget {
 
 class _AddtaskState extends State<Addtask> {
   final TextEditingController taskController = TextEditingController();
-  WeekOfDays? selectedDay;
-
   final TextEditingController descriptionController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-
-    taskController.addListener(() {
-      setState(() {});
-    });
-
-    descriptionController.addListener(() {
-      setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    taskController.dispose();
-    descriptionController.dispose();
-    super.dispose();
-  }
+  WeekOfDays? selectedDay;
 
   @override
   Widget build(BuildContext context) {
@@ -109,21 +88,31 @@ class _AddtaskState extends State<Addtask> {
               minimumSize: Size(10, 45),
             ),
             onPressed: () {
-              if (selectedDay != null &&
-                  descriptionController.text.isNotEmpty &&
-                  taskController.text.isNotEmpty) {
-                final task = TaskModel(
-                  task: taskController.text,
-                  description: descriptionController.text,
-                  day: selectedDay!,
-                );
-                context.read<TaskProvider>().addTask(task);
-                Navigator.pop(context);
-              } else {
+              final taskText = taskController.text;
+              final descriptionText = descriptionController.text;
+              final day = selectedDay;
+
+              final errorMessage = context
+                  .read<TaskProvider>()
+                  .validateTaskInput(taskText, descriptionText, day);
+
+              if (errorMessage != null) {
                 ScaffoldMessenger.of(
                   context,
-                ).showSnackBar(SnackBar(content: Text(AppStrings.alert)));
+                ).showSnackBar(SnackBar(content: Text(errorMessage)));
+                return;
               }
+
+              context.read<TaskProvider>().addTask(
+                TaskModel(
+                  task: taskText,
+                  description: descriptionText,
+                  day: day!,
+                  isFavorite: false,
+                ),
+              );
+
+              Navigator.pop(context);
             },
 
             child: Text(

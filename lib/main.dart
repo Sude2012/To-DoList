@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todolist/core/provider/task_provider.dart';
+import 'package:todolist/core/provider/task_viewmodel.dart';
 import 'package:todolist/features/add_task/add_task_view.dart';
 import 'package:todolist/core/constant/string.dart';
 import 'package:todolist/core/models/task_model.dart';
