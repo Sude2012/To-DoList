@@ -3,6 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:todolist/core/models/task_model.dart';
 import 'package:todolist/core/provider/task_viewmodel.dart';
 import 'package:todolist/features/add_task/add_task_view.dart';
+import 'package:todolist/features/calendar/calendar_view.dart';
+import 'package:todolist/features/fav_task/fav_task_view.dart';
+import 'package:todolist/features/habits/habits_view.dart';
+import 'package:todolist/features/profile/profile_view.dart';
+import 'package:todolist/features/settings/settings_view.dart';
 
 class TaskListPage extends StatefulWidget {
   const TaskListPage({super.key, required this.title});
@@ -15,15 +20,14 @@ class TaskListPage extends StatefulWidget {
 class _TaskListPageState extends State<TaskListPage> {
   @override
   Widget build(BuildContext context) {
-    print("triggered build function button");
-
     final taskProvider = context.watch<TaskProvider>();
     final tasks = taskProvider.tasks;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        backgroundColor: const Color(0xFFC9463D),
+        title: Text("To Do List"),
       ),
       body: Column(
         children: [
@@ -35,31 +39,116 @@ class _TaskListPageState extends State<TaskListPage> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: tasks.isEmpty
-                  ? Center(child: Text("Henüz görev yok"))
+                  ? const Center(child: Text("Henüz görev yok"))
                   : _buildTaskListView(tasks, taskProvider),
             ),
           ),
         ],
       ),
+      drawer: Drawer(
+        backgroundColor: Colors.white,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            SizedBox(
+              width: 100,
+              height: 120,
+              child: const DrawerHeader(
+                decoration: BoxDecoration(color: const Color(0xFFC9463D)),
+                child: Text(
+                  'Menu',
+                  style: TextStyle(color: Colors.white, fontSize: 24),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Home Page'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Profile'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Profile()),
+                );
+              },
+            ),
 
-      floatingActionButton: _buildaAddTaskButtom(context),
+            ListTile(
+              leading: const Icon(Icons.star),
+              title: const Text('Favorite Tasks'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const FavTask()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.auto_awesome),
+              title: const Text('Habits'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HabitsView()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.calendar_month),
+              title: const Text('Calendar'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CalendarPage()),
+                );
+              },
+            ),
+            Container(
+              margin: const EdgeInsets.only(top: 300),
+              color: const Color.fromARGB(255, 248, 247, 247),
+              child: ListTile(
+                leading: const Icon(Icons.settings, size: 29),
+                title: const Text('Settings', style: TextStyle(fontSize: 19)),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsView(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: _buildAddTaskButton(context),
     );
   }
 
-  FloatingActionButton _buildaAddTaskButtom(BuildContext context) {
-    print("triggered floating action button");
+  FloatingActionButton _buildAddTaskButton(BuildContext context) {
     return FloatingActionButton(
-      backgroundColor: const Color.fromARGB(255, 202, 47, 36),
+      backgroundColor: const Color(0xFFC9463D),
       child: const Icon(Icons.add, color: Colors.white, size: 35),
       onPressed: () {
         showModalBottomSheet(
           context: context,
-          isScrollControlled: false,
-          builder: (context) => Addtask(
-            onSave: (task) {
-              context.read<TaskProvider>().addTask(task);
-              Navigator.pop(context);
-            },
+          isScrollControlled: true,
+          builder: (context) => Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: Addtask(
+              onSave: (task) {
+                context.read<TaskProvider>().addTask(task);
+              },
+            ),
           ),
         );
       },
@@ -71,47 +160,71 @@ class _TaskListPageState extends State<TaskListPage> {
       itemCount: tasks.length,
       itemBuilder: (context, index) {
         final task = tasks[index];
-        return Column(
-          children: [
-            Column(
-              children: [
-                InkWell(
-                  child: Card(
-                    child: ListTile(
-                      title: Text(task.task),
-                      subtitle: Text(
-                        "Açıklama: ${task.description}\nGün: ${task.day.name}",
-                      ),
-                      trailing: Selector<TaskProvider, bool>(
-                        selector: (_, provider) =>
-                            provider.tasks[index].isFavorite,
-                        builder: (_, isFavorite, __) => IconButton(
-                          icon: Icon(
-                            Icons.star,
-                            color: task.isFavorite
-                                ? Colors.amber
-                                : Colors.white,
-                          ),
-                          iconSize: 30,
-                          highlightColor: const Color.fromARGB(
-                            255,
-                            202,
-                            47,
-                            36,
-                          ),
-
-                          onPressed: () {
-                            print("Yıldız tıklandı!");
-                            taskProvider.changedFavorite(index);
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+        return SizedBox(
+          height: 130,
+          child: Card(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              side: BorderSide(
+                color: task.borderColor ?? Colors.grey,
+                width: 4,
+              ),
+              borderRadius: BorderRadius.circular(10),
             ),
-          ],
+            child: ListTile(
+              title: Text(task.task, style: const TextStyle(fontSize: 22)),
+              subtitle: Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  "Açıklama: ${task.description}\nGün: ${task.day.name}",
+                ),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.star,
+                      color: task.isFavorite
+                          ? Colors.amber
+                          : const Color.fromARGB(255, 140, 117, 117),
+                    ),
+                    onPressed: () {
+                      taskProvider.changedFavorite(index);
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.update, color: Colors.black87),
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (context) => Padding(
+                          padding: EdgeInsets.only(
+                            bottom: MediaQuery.of(context).viewInsets.bottom,
+                          ),
+                          child: Addtask(
+                            existingTask: task,
+                            onSave: (updatedTask) {
+                              context.read<TaskProvider>().updateTask(
+                                updatedTask,
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Color(0xFFA60303)),
+                    onPressed: () {
+                      taskProvider.removeTask(task);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );

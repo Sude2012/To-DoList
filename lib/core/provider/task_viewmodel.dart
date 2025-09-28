@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:todolist/core/db/database_helper.dart';
 import 'package:todolist/core/enums/week_of_days.dart';
 import 'package:todolist/core/models/task_model.dart';
 
 class TaskProvider with ChangeNotifier {
-  final List<TaskModel> _tasks = [];
+  List<TaskModel> _tasks = [];
   int sayac = 0;
 
   List<TaskModel> get tasks => _tasks;
+
+  TaskProvider() {
+    loadTasks();
+  }
 
   String? validateTaskInput(String task, String description, WeekOfDays? day) {
     if (day == null) {
@@ -21,47 +26,39 @@ class TaskProvider with ChangeNotifier {
     return null;
   }
 
-  void addTaskWithValidation(
-    String task,
-    String description,
-    WeekOfDays day,
-    BuildContext context,
-  ) {
-    final errorMessage = validateTaskInput(task, description, day);
-    if (errorMessage != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(errorMessage)));
-      return;
-    }
-    final newTask = TaskModel(
-      task: task,
-      description: description,
-      day: day,
-      isFavorite: false,
-    );
-    _tasks.add(newTask);
-    notifyListeners();
-  }
-
-  void addTask(TaskModel task) {
+  void addTask(TaskModel task) async {
     _tasks.add(task);
+    await DatabaseHelper.insertTask(task);
     notifyListeners();
   }
 
-  void removeTask(TaskModel task) {
-    _tasks.remove(task);
+  Future<void> loadTasks() async {
+    _tasks = await DatabaseHelper.getTasks();
     notifyListeners();
   }
 
-  void loadInitialTasks(List<TaskModel> jsonTasks) {
-    _tasks.addAll(jsonTasks);
-    notifyListeners();
-  }
-
-  void changedFavorite(int index) {
+  void changedFavorite(int index) async {
     _tasks[index].isFavorite = !_tasks[index].isFavorite;
     sayac = _tasks.where((task) => task.isFavorite == true).length;
+
+    await DatabaseHelper().updateTaskInDb(_tasks[index]);
+
     notifyListeners();
+  }
+
+  void removeTask(TaskModel task) async {
+    _tasks.remove(task);
+    await DatabaseHelper().deleteTaskById(task.id);
+    notifyListeners();
+  }
+
+  void updateTask(TaskModel updatedTask) async {
+    final index = tasks.indexWhere((t) => t.id == updatedTask.id);
+    if (index != -1) {
+      tasks[index] = updatedTask;
+      notifyListeners();
+
+      await DatabaseHelper().updateTaskInDb(updatedTask);
+    }
   }
 }

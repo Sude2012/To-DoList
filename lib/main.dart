@@ -12,14 +12,7 @@ import 'package:todolist/features/home/home_page.dart';
 void main() {
   runApp(
     ChangeNotifierProvider(
-      create: (context) {
-        final provider = TaskProvider();
-        final initialTasks = jsonList
-            .map((e) => TaskModel.fromJson(e))
-            .toList();
-        provider.loadInitialTasks(initialTasks);
-        return provider;
-      },
+      create: (context) => TaskProvider(),
       child: const MyApp(),
     ),
   );
@@ -39,9 +32,7 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: '',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Color.fromARGB(255, 130, 48, 18),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
       ),
       home: const TaskListPage(title: AppStrings.submit),
     );
